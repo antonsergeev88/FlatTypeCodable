@@ -1,48 +1,42 @@
-import SwiftSyntax
-import SwiftSyntaxBuilder
-import SwiftSyntaxMacros
-import SwiftSyntaxMacrosTestSupport
 import XCTest
+@testable import FlatTypeCodable
+import Foundation
 
-// Macro implementations build for the host, so the corresponding module is not available when cross-compiling. Cross-compiled tests may still make use of the macro itself in end-to-end tests.
-#if canImport(FlatTypeCodableMacros)
-import FlatTypeCodableMacros
-
-let testMacros: [String: Macro.Type] = [
-    "stringify": StringifyMacro.self,
+let data = """
+[
+    {
+      "type": "text",
+      "text": "Hello world"
+    },
+    {
+      "type": "media",
+      "url": "https://example.com/image.png"
+    }
 ]
-#endif
+"""
+    .data(using: .utf8)!
+
+@FlatTypeCodable
+enum Message: Equatable {
+    case text(TextMessage)
+    case media(MediaMessage)
+}
+
+struct TextMessage: Codable, Equatable {
+    let text: String
+}
+
+struct MediaMessage: Codable, Equatable {
+    let url: URL
+}
+
 
 final class FlatTypeCodableTests: XCTestCase {
-    func testMacro() throws {
-        #if canImport(FlatTypeCodableMacros)
-        assertMacroExpansion(
-            """
-            #stringify(a + b)
-            """,
-            expandedSource: """
-            (a + b, "a + b")
-            """,
-            macros: testMacros
-        )
-        #else
-        throw XCTSkip("macros are only supported when running tests for the host platform")
-        #endif
-    }
-
-    func testMacroWithStringLiteral() throws {
-        #if canImport(FlatTypeCodableMacros)
-        assertMacroExpansion(
-            #"""
-            #stringify("Hello, \(name)")
-            """#,
-            expandedSource: #"""
-            ("Hello, \(name)", #""Hello, \(name)""#)
-            """#,
-            macros: testMacros
-        )
-        #else
-        throw XCTSkip("macros are only supported when running tests for the host platform")
-        #endif
+    func testExpansion() throws {
+        let decoder = JSONDecoder()
+        let messages = try decoder.decode([Message].self, from: data)
+        XCTAssertEqual(messages.count, 2)
+        XCTAssertEqual(messages[0], .text(TextMessage(text: "Hello world")))
+        XCTAssertEqual(messages[1], .media(MediaMessage(url: URL(string: "https://example.com/image.png")!)))
     }
 }
