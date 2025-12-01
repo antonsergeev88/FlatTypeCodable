@@ -27,6 +27,7 @@ let package = Package(
         .testTarget(
             name: "FlatTypeCodableTests",
             dependencies: [
+                "FlatTypeCodable",
                 "FlatTypeCodableMacros",
             ]
         ),

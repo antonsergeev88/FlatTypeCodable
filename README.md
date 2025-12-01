@@ -111,6 +111,7 @@ The macro enforces a few simple rules:
 
 - It can be applied **only to enums**
 - Each case must have **exactly one associated value**
+- The associated value must be **unlabeled** (labeled payloads aren’t supported yet)
 - The associated value’s type must be `Codable`
 
 If these rules are violated, the macro emits a diagnostic error at compile time.
@@ -170,4 +171,3 @@ extension Message: Codable {}
 ```
 
 This pattern generalizes to any enum that follows the same rules. You design the payload types as normal `Codable` structs; the macro wires them together into a flat, type‑tagged representation that matches typical API responses.
-
