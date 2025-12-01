@@ -1,5 +1,5 @@
 import XCTest
-@testable import FlatTypeCodable
+import FlatTypeCodable
 import Foundation
 
 let data = """
@@ -38,5 +38,10 @@ final class FlatTypeCodableTests: XCTestCase {
         XCTAssertEqual(messages.count, 2)
         XCTAssertEqual(messages[0], .text(TextMessage(text: "Hello world")))
         XCTAssertEqual(messages[1], .media(MediaMessage(url: URL(string: "https://example.com/image.png")!)))
+        
+        let encoder = JSONEncoder()
+        let encodedData = try encoder.encode(messages)
+        let encodedMessages = try decoder.decode([Message].self, from: encodedData)
+        XCTAssertEqual(messages, encodedMessages)
     }
 }
